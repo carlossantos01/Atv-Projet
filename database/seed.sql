@@ -1,0 +1,3 @@
+INSERT INTO profissionais (nome, especialidade) VALUES ('Carlos', 'Degradê e Barba Moderna'), ('Master Shave', 'Visagismo e Toalha Quente');
+INSERT INTO servicos (nome, duracao_min, preco, profissional_id) VALUES ('Corte Razor Fade', 30, 50.00, 1), ('Barba Premium', 30, 40.00, 2);
+INSERT INTO usuarios (nome, email, senha_hash, perfil) VALUES ('Admin', 'admin@barber.com', 'senha123_provisoria', 'admin');
