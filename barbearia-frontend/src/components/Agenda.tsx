@@ -1,15 +1,46 @@
 import { useState, useEffect } from 'react';
 import NovoAgendamentoModal from './NovoAgendamentoModal';
-import type { Agendamento } from '../../../packages/contracts/src';
+import type { AgendamentoListItem, ApiErrorResponse } from '../../../packages/contracts/src';
 
+const API_AGENDAMENTOS_URL = 'http://localhost:3000/api/agendamentos';
+
+const isApiErrorResponse = (value: unknown): value is ApiErrorResponse => {
+  return typeof value === 'object' && value !== null && 'erro' in value;
+};
+
+const formatarDataHora = (value: string): string => {
+  return new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(new Date(value));
+};
 
 export default function Agenda() {
-  const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
+  const [agendamentos, setAgendamentos] = useState<AgendamentoListItem[]>([]);
   const [modalNovoAberto, setModalNovoAberto] = useState<boolean>(false); 
+  const [carregando, setCarregando] = useState<boolean>(false);
+  const [erro, setErro] = useState<string | null>(null);
  
 
-  const carregarAgendamentos = async () => {
- 
+  const carregarAgendamentos = async (): Promise<void> => {
+    setCarregando(true);
+    setErro(null);
+
+    try {
+      const res = await fetch(API_AGENDAMENTOS_URL);
+
+      if (!res.ok) {
+        const apiError: unknown = await res.json().catch(() => null);
+        throw new Error(isApiErrorResponse(apiError) ? apiError.erro : 'Erro ao carregar agendamentos.');
+      }
+
+      const dados = await res.json() as AgendamentoListItem[];
+      setAgendamentos(dados);
+    } catch (err: unknown) {
+      setErro(err instanceof Error ? err.message : 'Erro ao carregar agendamentos.');
+    } finally {
+      setCarregando(false);
+    }
   };
   
   
@@ -41,7 +72,44 @@ export default function Agenda() {
         />
       )}
 
-   
+      {carregando ? (
+        <p style={{ color: '#9ca3af', margin: 0 }}>Carregando agendamentos...</p>
+      ) : erro ? (
+        <div style={{ padding: '12px', borderRadius: '4px', background: '#c62828', color: '#fff' }}>
+          {erro}
+        </div>
+      ) : agendamentos.length === 0 ? (
+        <p style={{ color: '#9ca3af', margin: 0 }}>Nenhum agendamento encontrado.</p>
+      ) : (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', color: '#e1e1e6', textAlign: 'left' }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid #323238' }}>
+                <th style={{ padding: '10px' }}>Cliente</th>
+                <th>Profissional</th>
+                <th>Serviço</th>
+                <th>Início</th>
+                <th>Fim</th>
+                <th>Status</th>
+                <th>Observação</th>
+              </tr>
+            </thead>
+            <tbody>
+              {agendamentos.map((agendamento) => (
+                <tr key={agendamento.id} style={{ borderBottom: '1px solid #323238' }}>
+                  <td style={{ padding: '10px' }}>{agendamento.cliente}</td>
+                  <td>{agendamento.profissional}</td>
+                  <td>{agendamento.servico}</td>
+                  <td>{formatarDataHora(agendamento.dataHoraInicio)}</td>
+                  <td>{formatarDataHora(agendamento.dataHoraFim)}</td>
+                  <td style={{ textTransform: 'capitalize' }}>{agendamento.status}</td>
+                  <td>{agendamento.observacao ?? '-'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

@@ -50,7 +50,12 @@ export const validate = (schemas: ValidationSchemas): RequestHandler => {
                 }));
                 return;
             }
-            req.query = result.data as typeof req.query;
+            Object.defineProperty(req, 'query', {
+                value: result.data as typeof req.query,
+                writable: true,
+                enumerable: true,
+                configurable: true,
+            });
         }
 
         next();
