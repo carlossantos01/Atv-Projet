@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+barbearia-frontend/node_modules/
+
+# Environment files
+.env
+.env.*
+!.env.example
+barbearia-frontend/.env
+barbearia-frontend/.env.*
+!barbearia-frontend/.env.example
+
+# Build output
+dist/
+build/
+dist-ssr/
+packages/contracts/dist/
+barbearia-frontend/dist/
+barbearia-frontend/build/
+barbearia-frontend/dist-ssr/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Editor and OS files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.local
