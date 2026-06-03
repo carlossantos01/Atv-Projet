@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { AgendamentoListItem, ApiErrorResponse } from '../../packages/contracts/src';
+import type { AgendamentoListItem, ApiErrorResponse } from '../../../packages/contracts';
 
 const API_AGENDAMENTOS_URL = 'http://localhost:3000/api/agendamentos';
 
