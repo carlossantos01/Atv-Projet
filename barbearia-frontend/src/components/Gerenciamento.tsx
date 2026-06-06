@@ -1,37 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import type { ApiErrorResponse, Cliente, Profissional, Servico } from '../../../packages/contracts/src';
+import { requestJson } from '../api/api';
+import type { Cliente, Profissional, Servico } from '../../../packages/contracts/src';
 
 type AbaAtiva = 'clientes' | 'profissionais' | 'servicos';
-
-const API_BASE_URL = 'http://localhost:3000/api';
-
-const isApiErrorResponse = (value: unknown): value is ApiErrorResponse => {
-  return typeof value === 'object' && value !== null && 'erro' in value;
-};
-
-const getToken = (): string | null => {
-  return localStorage.getItem('@AgendaFacil:token');
-};
-
-async function requestJson<TResponse>(path: string, options: RequestInit = {}): Promise<TResponse> {
-  const token = getToken();
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-  });
-
-  const body: unknown = await res.json().catch(() => null);
-
-  if (!res.ok) {
-    throw new Error(isApiErrorResponse(body) ? body.erro : 'Erro ao processar solicitação.');
-  }
-
-  return body as TResponse;
-}
 
 export default function Gerenciamento() {
   const [aba, setAba] = useState<AbaAtiva>('clientes');

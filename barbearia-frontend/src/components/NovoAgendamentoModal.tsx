@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { ApiErrorResponse } from '../../../packages/contracts/src';
+import { requestJson, requestJsonWithoutAuth } from '../api/api';
 
 interface ItemBase { id: number; nome: string; }
 
@@ -7,12 +7,6 @@ interface NovoAgendamentoModalProps {
   onClose: () => void;
   onSuccess: () => void;
 }
-
-const API_BASE_URL = 'http://localhost:3000/api';
-
-const isApiErrorResponse = (value: unknown): value is ApiErrorResponse => {
-  return typeof value === 'object' && value !== null && 'erro' in value;
-};
 
 export default function NovoAgendamentoModal({ onClose, onSuccess }: NovoAgendamentoModalProps) {
   
@@ -34,15 +28,15 @@ export default function NovoAgendamentoModal({ onClose, onSuccess }: NovoAgendam
   useEffect(() => {
     const carregarDados = async () => {
       try {
-        const [resC, resP, resS] = await Promise.all([
-          fetch(`${API_BASE_URL}/clientes`),
-          fetch(`${API_BASE_URL}/profissionais?ativo=true`),
-          fetch(`${API_BASE_URL}/servicos?ativo=true`)
+        const [clientesData, profissionaisData, servicosData] = await Promise.all([
+          requestJsonWithoutAuth<ItemBase[]>('/clientes'),
+          requestJsonWithoutAuth<ItemBase[]>('/profissionais?ativo=true'),
+          requestJsonWithoutAuth<ItemBase[]>('/servicos?ativo=true'),
         ]);
 
-        if (resC.ok) setClientes(await resC.json());
-        if (resP.ok) setProfissionais(await resP.json());
-        if (resS.ok) setServicos(await resS.json());
+        setClientes(clientesData);
+        setProfissionais(profissionaisData);
+        setServicos(servicosData);
       } catch (err) {
         setErro('Erro ao carregar listas de seleção.');
       }
@@ -58,25 +52,16 @@ export default function NovoAgendamentoModal({ onClose, onSuccess }: NovoAgendam
     const token = localStorage.getItem('@AgendaFacil:token');
 
     try {
-      const res = await fetch(`${API_BASE_URL}/agendamentos`, {
+      await requestJson<{ id: number; mensagem: string }>('/agendamentos', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token ?? ''}`
-        },
         body: JSON.stringify({
           clienteId: Number(clienteId),
           profissionalId: Number(profissionalId),
           servicoId: Number(servicoId),
           dataHoraInicio: new Date(dataHoraInicio).toISOString(),
-          observacao
+          observacao,
         }),
       });
-
-      if (!res.ok) {
-        const apiError: unknown = await res.json().catch(() => null);
-        throw new Error(isApiErrorResponse(apiError) ? apiError.erro : 'Erro ao criar agendamento.');
-      }
 
       onSuccess();
     } catch (err: unknown) {

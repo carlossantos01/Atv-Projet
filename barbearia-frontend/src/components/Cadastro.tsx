@@ -1,16 +1,10 @@
 import React, { useState } from 'react';
-import type { ApiErrorResponse } from '../../../packages/contracts/src';
+import { requestJsonWithoutAuth } from '../api/api';
 
 interface CadastroProps {
   onRegisterSuccess: () => void;
   onNavigateToLogin: () => void;
 }
-
-const API_AUTH_URL = 'http://localhost:3000/api/auth/register';
-
-const isApiErrorResponse = (value: unknown): value is ApiErrorResponse => {
-  return typeof value === 'object' && value !== null && 'erro' in value;
-};
 
 export default function Cadastro({ onRegisterSuccess, onNavigateToLogin }: CadastroProps) {
   const [nome, setNome] = useState<string>('');
@@ -27,17 +21,10 @@ export default function Cadastro({ onRegisterSuccess, onNavigateToLogin }: Cadas
     setSucesso(null);
 
     try {
-      const res = await fetch(API_AUTH_URL, {
+      await requestJsonWithoutAuth('/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nome, email, senha }),
       });
-
-      if (!res.ok) {
-        const apiError: unknown = await res.json().catch(() => null);
-        const mensagem = isApiErrorResponse(apiError) ? apiError.erro : 'Ocorreu um erro ao criar conta.';
-        throw new Error(mensagem);
-      }
 
       setSucesso('Cadastro realizado com sucesso! Redirecionando...');
       setTimeout(() => {

@@ -1,16 +1,10 @@
 import React, { useState } from 'react';
-import type { ApiErrorResponse } from '../../../packages/contracts/src';
+import { requestJsonWithoutAuth } from '../api/api';
 
 interface LoginProps {
   onLoginSuccess: (token: string) => void;
   onNavigateToRegister: () => void;
 }
-
-const API_AUTH_URL = 'http://localhost:3000/api/auth/login';
-
-const isApiErrorResponse = (value: unknown): value is ApiErrorResponse => {
-  return typeof value === 'object' && value !== null && 'erro' in value;
-};
 
 export default function Login({ onLoginSuccess, onNavigateToRegister }: LoginProps) {
   const [email, setEmail] = useState<string>('');
@@ -24,19 +18,11 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }: LoginPro
     setErro(null);
 
     try {
-      const res = await fetch(API_AUTH_URL, {
+      const dados = await requestJsonWithoutAuth<{ token: string }>('/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, senha }),
       });
 
-      if (!res.ok) {
-        const apiError: unknown = await res.json().catch(() => null);
-        const mensagem = isApiErrorResponse(apiError) ? apiError.erro : 'Ocorreu um erro ao fazer login.';
-        throw new Error(mensagem);
-      }
-
-      const dados = await res.json() as { token: string };
       onLoginSuccess(dados.token);
     } catch (err: unknown) {
       const mensagem = err instanceof Error ? err.message : 'Erro desconhecido';

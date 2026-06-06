@@ -1,12 +1,7 @@
 import { useState, useEffect } from 'react';
 import NovoAgendamentoModal from './NovoAgendamentoModal';
-import type { AgendamentoListItem, ApiErrorResponse } from '../../../packages/contracts/src';
-
-const API_AGENDAMENTOS_URL = 'http://localhost:3000/api/agendamentos';
-
-const isApiErrorResponse = (value: unknown): value is ApiErrorResponse => {
-  return typeof value === 'object' && value !== null && 'erro' in value;
-};
+import { requestJson } from '../api/api';
+import type { AgendamentoListItem } from '../../../packages/contracts/src';
 
 const formatarDataHora = (value: string): string => {
   return new Intl.DateTimeFormat('pt-BR', {
@@ -27,14 +22,7 @@ export default function Agenda() {
     setErro(null);
 
     try {
-      const res = await fetch(API_AGENDAMENTOS_URL);
-
-      if (!res.ok) {
-        const apiError: unknown = await res.json().catch(() => null);
-        throw new Error(isApiErrorResponse(apiError) ? apiError.erro : 'Erro ao carregar agendamentos.');
-      }
-
-      const dados = await res.json() as AgendamentoListItem[];
+      const dados = await requestJson<AgendamentoListItem[]>('/agendamentos');
       setAgendamentos(dados);
     } catch (err: unknown) {
       setErro(err instanceof Error ? err.message : 'Erro ao carregar agendamentos.');
